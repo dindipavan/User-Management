@@ -3,7 +3,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 function App() {
   const [users, setUsers] = useState([]);
   const [editUserId, setEditUserId] = useState(null);
@@ -16,6 +15,7 @@ function App() {
   });
 
   const [formData, setFormData] = useState({
+    id: "",  // Ensure ID is initialized
     firstName: "",
     lastName: "",
     email: "",
@@ -29,11 +29,11 @@ function App() {
         const response = await fetch("https://jsonplaceholder.typicode.com/users");
         const data = await response.json();
         const formattedUsers = data.map((user) => ({
-          id: user.id,
+          id: new Date().getTime() + Math.floor(Math.random() * 1000),  // Generate unique ID
           firstName: user.name.split(" ")[0] || "",
           lastName: user.name.split(" ")[1] || "",
           email: user.email,
-          department: user.company ? user.company.name : "Default Department", 
+          department: user.company ? user.company.name : "Default Department",
         }));
         setUsers(formattedUsers);
       } catch (error) {
@@ -44,21 +44,36 @@ function App() {
     fetchUsers();
   }, []);
 
-  // Add User
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+      id: formData.id || new Date().getTime().toString(),  // Auto-generate ID
+    });
+  };
+
+  // Handle adding a new user
   const handleAddUser = (e) => {
     e.preventDefault();
-    if (formData.id || !formData.firstName || !formData.lastName || !formData.email || !formData.department) {
+
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.department) {
       toast.error("All fields are required.");
       return;
     }
-    const newUser = {
-      id: new Date().getTime().toString(),
-      ...formData,
-    };
-    setUsers([...users, newUser]);
-    setFormData({id: "", firstName: "", lastName: "", email: "", department: "" });
-    toast.success("User added successfully!");
 
+    const newUser = {
+      id: formData.id || new Date().getTime().toString(), // Use generated ID if not provided
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      department: formData.department,
+    };
+
+    setUsers([...users, newUser]);
+    setFormData({ id: "", firstName: "", lastName: "", email: "", department: "" });
+    toast.success("User added successfully!");
   };
 
   // Start Editing
@@ -103,59 +118,54 @@ function App() {
       {/* Add User Form */}
       <form onSubmit={handleAddUser}>
         <div className="row g-3">
-        <div className="col-md-2">
+          <div className="col-md-2">
             <input
               type="text"
-              placeholder="ID"
-              className="form-control"
+              name="id"
               value={formData.id}
-              onChange={(e) =>
-                setFormData({ ...formData, ID: e.target.value })
-              }
+              className="form-control"
+              placeholder="ID (auto-generated)"
+              readOnly
             />
           </div>
           <div className="col-md-2">
             <input
               type="text"
+              name="firstName"
               placeholder="First Name"
               className="form-control"
               value={formData.firstName}
-              onChange={(e) =>
-                setFormData({ ...formData, firstName: e.target.value })
-              }
+              onChange={handleChange}
             />
           </div>
           <div className="col-md-2">
             <input
               type="text"
+              name="lastName"
               placeholder="Last Name"
               className="form-control"
               value={formData.lastName}
-              onChange={(e) =>
-                setFormData({ ...formData, lastName: e.target.value })
-              }
+              onChange={handleChange}
             />
           </div>
           <div className="col-md-3">
             <input
               type="email"
+              name="email"
               placeholder="Email"
               className="form-control"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={handleChange}
             />
           </div>
           <div className="col-md-3">
             <input
               type="text"
+              name="department"
               placeholder="Department"
               className="form-control"
               value={formData.department}
-              onChange={(e) =>
-                setFormData({ ...formData, department: e.target.value })
-              }
+              onChange={handleChange}
             />
           </div>
           <div className="col-md-2">
@@ -184,50 +194,20 @@ function App() {
               <tr key={user.id}>
                 <td>{user.id}</td>
                 <td>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={editData.firstName}
-                    onChange={(e) => handleEditChange(e, "firstName")}
-                  />
+                  <input type="text" className="form-control" value={editData.firstName} onChange={(e) => handleEditChange(e, "firstName")} />
                 </td>
                 <td>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={editData.lastName}
-                    onChange={(e) => handleEditChange(e, "lastName")}
-                  />
+                  <input type="text" className="form-control" value={editData.lastName} onChange={(e) => handleEditChange(e, "lastName")} />
                 </td>
                 <td>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={editData.email}
-                    onChange={(e) => handleEditChange(e, "email")}
-                  />
+                  <input type="email" className="form-control" value={editData.email} onChange={(e) => handleEditChange(e, "email")} />
                 </td>
                 <td>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={editData.department}
-                    onChange={(e) => handleEditChange(e, "department")}
-                  />
+                  <input type="text" className="form-control" value={editData.department} onChange={(e) => handleEditChange(e, "department")} />
                 </td>
                 <td>
-                  <button
-                    onClick={() => handleUpdate(user.id)}
-                    className="btn btn-success btn-sm me-2"
-                  >
-                    Update
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    className="btn btn-secondary btn-sm"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => handleUpdate(user.id)} className="btn btn-success btn-sm me-2">Update</button>
+                  <button onClick={handleCancelEdit} className="btn btn-secondary btn-sm">Cancel</button>
                 </td>
               </tr>
             ) : (
@@ -238,18 +218,8 @@ function App() {
                 <td>{user.email}</td>
                 <td>{user.department}</td>
                 <td>
-                  <button
-                    onClick={() => handleEdit(user.id)}
-                    className="btn btn-primary btn-sm me-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="btn btn-danger btn-sm"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => handleEdit(user.id)} className="btn btn-primary btn-sm me-2">Edit</button>
+                  <button onClick={() => handleDelete(user.id)} className="btn btn-danger btn-sm">Delete</button>
                 </td>
               </tr>
             )

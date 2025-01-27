@@ -52,7 +52,7 @@ const App = () => {
     }
 
     const newUser = {
-      id: formData.id || generateRandomID(), // Use random ID if not provided
+      id: formData.id,
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
