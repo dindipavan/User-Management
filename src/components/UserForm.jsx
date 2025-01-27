@@ -36,7 +36,7 @@ class UserForm extends Component {
     const { id, firstName, lastName, email, department, isEdit } = this.state;
 
     const user = {
-      id: isEdit ? id : Math.random(),
+      id: isEdit ? id :${id},
       name: `${firstName} ${lastName}`,
       email,
       company: { name: department },
